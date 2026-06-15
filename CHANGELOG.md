@@ -7,6 +7,24 @@ and this project adheres to Semantic Versioning.
 
 ---
 
+## v0.5.0 (2026-06-15)
+
+### Feat
+
+- **gui**: add logs page with real-time journald stream
+- **gui**: add optional GTK interface and desktop launcher
+- notify on startup when a newer GitHub release exists
+
+### Fix
+
+- **daemon**: handle SIGTERM gracefully and log full tracebacks
+- **preset**: write config atomically to prevent partial updates
+- **install**: use xdg-icon-resource to install icon in valid hicolor size
+
+### Refactor
+
+- **cli**: derive mode list from effect factory and simplify save calls
+
 ## v0.4.0 (2026-06-12)
 
 ### Feat
