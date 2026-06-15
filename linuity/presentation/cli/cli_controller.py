@@ -84,19 +84,21 @@ class CLIController:
                 label += " (contrast)"
 
             print(f"  {i}/{total}  {label} ".ljust(44, "."), end=" ", flush=True)
-            self._save_from_dict({
-                "mode": mode,
-                "times": times,
-                "interval": interval,
-                "min": params.get("min"),
-                "max": params.get("max"),
-                "vid": vid_pid.get("vid"),
-                "pid": vid_pid.get("pid"),
-                "variation": params.get("variation"),
-                "speed": params.get("speed"),
-                "step": params.get("step"),
-                "contrast": params.get("contrast"),
-            })
+            self._save_from_dict(
+                {
+                    "mode": mode,
+                    "times": times,
+                    "interval": interval,
+                    "min": params.get("min"),
+                    "max": params.get("max"),
+                    "vid": vid_pid.get("vid"),
+                    "pid": vid_pid.get("pid"),
+                    "variation": params.get("variation"),
+                    "speed": params.get("speed"),
+                    "step": params.get("step"),
+                    "contrast": params.get("contrast"),
+                }
+            )
             DaemonControl.restart(quiet=True)
             time.sleep(2)
             print("ok")

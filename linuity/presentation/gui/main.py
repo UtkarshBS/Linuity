@@ -265,6 +265,7 @@ def _build_app():
 
         def _do_apply(self, mode, kwargs):
             from gi.repository import GLib
+
             try:
                 self.controller.apply(mode, **kwargs)
                 GLib.idle_add(self._on_apply_done, mode, None)
@@ -287,6 +288,7 @@ def _build_app():
 
         def _do_turn_off(self):
             from gi.repository import GLib
+
             try:
                 self.controller.turn_off()
                 GLib.idle_add(self._on_turn_off_done, None)
@@ -349,8 +351,14 @@ def _build_app():
             try:
                 proc = subprocess.Popen(
                     [
-                        "journalctl", "-u", "linuity.service",
-                        "-f", "-n", "30", "--no-pager", "--output=short",
+                        "journalctl",
+                        "-u",
+                        "linuity.service",
+                        "-f",
+                        "-n",
+                        "30",
+                        "--no-pager",
+                        "--output=short",
                     ],
                     stdout=subprocess.PIPE,
                     stderr=subprocess.DEVNULL,
@@ -363,6 +371,7 @@ def _build_app():
 
         def _log_worker(self, proc):
             from gi.repository import GLib
+
             for line in proc.stdout:
                 if self._log_stop.is_set():
                     break
