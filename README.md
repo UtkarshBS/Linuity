@@ -23,6 +23,8 @@ Other HyperX devices may work but are not officially supported.
 
 ## Interface
 
+<img width="425" height="371" alt="image" src="https://github.com/user-attachments/assets/fd3eb57e-ca34-48ae-a7f6-b1c8e5efee83" />
+
 Linuity ships with a native GTK4 interface that lets you switch modes, adjust parameters, and apply changes with a single click. A real-time log viewer is built in, streaming the daemon output directly in the app.
 
 To open the interface, search for **Linuity** in GNOME Activities, or run:
@@ -80,7 +82,7 @@ Validated on Ubuntu 26.04 and Debian 13.
 
 ## CLI Reference
 
-![CLI output after installation](https://github.com/user-attachments/assets/ba987c00-220f-4d2a-99d8-84413db89ef0)
+<img width="1000" height="806" alt="image" src="https://github.com/user-attachments/assets/f6145037-4dc0-424e-ac79-047d835f50df" />
 
 Common commands:
 
