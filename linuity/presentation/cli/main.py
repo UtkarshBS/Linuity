@@ -6,8 +6,10 @@ import sys
 from importlib.metadata import version as pkg_version
 from subprocess import CalledProcessError
 
+from linuity.application.effects.effect_factory import AVAILABLE_MODES
 from linuity.infra.logging_config import setup_cli_logging
 from linuity.infra.system.daemon_control import DaemonControl
+from linuity.infra.update_checker import check_for_update
 from linuity.presentation.cli.cli_controller import CLIController
 from linuity.presentation.cli.components import banner
 
@@ -20,22 +22,18 @@ def main():
 
     banner.show(pkg_version("linuity"))
 
+    update = check_for_update(pkg_version("linuity"))
+    if update:
+        logger.warning(
+            "New version available: v%s — https://github.com/gabrielvictorweb/linuity", update
+        )
+
     parser = argparse.ArgumentParser(description="HyperX LED Controller (Linuity)")
 
     parser.add_argument(
         "--mode",
-        choices=[
-            "off",
-            "led-off",
-            "static",
-            "blinking",
-            "gradual",
-            "wave",
-            "flicker",
-            "scanner",
-            "test",
-        ],
-        help="Lighting mode (use 'off' to disable daemon)",
+        choices=[*AVAILABLE_MODES, "off", "test", "gui"],
+        help="Lighting mode (use 'off' to disable daemon, 'gui' to open the interface)",
     )
     parser.add_argument("--opacity", type=int, help="Max opacity (0-100)")
     parser.add_argument("--min", type=int, help="Minimum opacity (0-100)")
@@ -48,11 +46,16 @@ def main():
     parser.add_argument("--contrast", action="store_true", help="Apply contrast curve to wave")
     parser.add_argument("--save", action="store_true")
     parser.add_argument("--status", action="store_true")
-    parser.add_argument("--config", action="store_true")
     parser.add_argument("--pid", type=int, help="Product ID")
     parser.add_argument("--vid", type=int, help="Vendor ID")
 
     args = parser.parse_args()
+
+    if args.mode == "gui":
+        from linuity.presentation.gui.main import launch_gui
+
+        sys.exit(launch_gui())
+
     controller = CLIController()
 
     # validations
@@ -96,11 +99,6 @@ def main():
             DaemonControl.disable()
             return
 
-        if not args.mode:
-            logger.error("You must specify a mode")
-            parser.print_help()
-            sys.exit(1)
-
         if args.save:
             controller.save_and_apply(
                 args.mode,
@@ -112,7 +110,7 @@ def main():
                 variation=args.variation,
                 speed=args.speed,
                 step=args.step,
-                contrast=args.contrast if args.contrast else None,
+                contrast=args.contrast or None,
             )
         else:
             logger.warning("Use --save to apply changes")

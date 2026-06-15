@@ -34,7 +34,7 @@ cd "$(dirname "$0")"
 
 echo -e "${CYAN}[ + ] Installing dependencies...${RESET}"
 sudo apt update
-sudo apt install -y pipx python3-hid fzf
+sudo apt install -y pipx python3-hid fzf python3-gi gir1.2-gtk-4.0
 
 pipx ensurepath
 
@@ -45,7 +45,9 @@ pipx ensurepath
 echo -e "${CYAN}[ + ] Installing Linuity...${RESET}"
 
 pipx uninstall linuity 2>/dev/null || true
-pipx install . --force
+# --system-site-packages exposes apt's python3-gi (PyGObject/GTK4) inside
+# the pipx venv, so the GUI works without any extra install step
+pipx install . --force --system-site-packages
 pipx runpip linuity install hidapi
 
 DAEMON_PATH="$HOME/.local/bin/linuity-daemon"
@@ -164,6 +166,26 @@ echo -e "${YELLOW}[ ! ] You may need to re-login for permissions${RESET}"
 echo ""
 
 # =======================================
+# SUDOERS (GUI)
+# =======================================
+
+echo -e "${CYAN}[ + ] Allowing daemon control without password (GUI)...${RESET}"
+
+SUDOERS_FILE="/etc/sudoers.d/linuity"
+
+echo "%$GROUP_NAME ALL=(root) NOPASSWD: /usr/bin/systemctl restart linuity.service, /usr/bin/systemctl disable --now linuity.service" | sudo tee "$SUDOERS_FILE" > /dev/null
+sudo chmod 0440 "$SUDOERS_FILE"
+
+if ! sudo visudo -cf "$SUDOERS_FILE" > /dev/null; then
+    sudo rm -f "$SUDOERS_FILE"
+    echo -e "${RED}[ x ] Invalid sudoers entry, removed${RESET}"
+    exit 1
+fi
+
+echo -e "${GREEN}[ ✔ ] Sudoers rule installed (scoped to linuity.service only)${RESET}"
+echo ""
+
+# =======================================
 # SYSTEMD SERVICE (ROOT)
 # =======================================
 
@@ -193,6 +215,42 @@ sudo systemctl enable linuity.service
 sudo systemctl restart linuity.service
 
 echo -e "${GREEN}[ ✔ ] Service running${RESET}"
+
+# =======================================
+# DESKTOP LAUNCHER (GNOME)
+# =======================================
+
+echo -e "${CYAN}[ + ] Installing desktop launcher...${RESET}"
+
+ICONS="$HOME/.local/share/icons/hicolor"
+mkdir -p "$HOME/.local/share/applications"
+
+# limpa colocacoes erradas/antigas
+rm -f "$ICONS/scalable/apps/linuity.png" "$ICONS/scalable/apps/linuity.svg"
+rm -f "$ICONS/1024x1024/apps/linuity.png"
+
+# xdg-icon-resource instala no diretorio correto e atualiza o cache
+# hicolor so suporta ate 512x512; instalar em tamanho maior faz o icone sumir
+xdg-icon-resource install --novendor --size 512 linuity/resources/linuity.png linuity
+
+tee "$HOME/.local/share/applications/linuity.desktop" > /dev/null <<EOF
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=Linuity
+Comment=HyperX LED Controller
+Exec=$HOME/.local/bin/linuity --mode gui
+Icon=linuity
+Terminal=false
+Categories=Settings;HardwareSettings;
+Keywords=led;hyperx;rgb;light;microphone;quadcast;
+StartupWMClass=dev.linuity.gui
+StartupNotify=true
+EOF
+
+update-desktop-database "$HOME/.local/share/applications" 2>/dev/null || true
+
+echo -e "${GREEN}[ ✔ ] Launcher installed (search for 'Linuity' in GNOME)${RESET}"
 
 # =======================================
 # DONE
