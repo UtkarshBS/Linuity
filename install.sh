@@ -33,8 +33,18 @@ cd "$(dirname "$0")"
 # =======================================
 
 echo -e "${CYAN}[ + ] Installing dependencies...${RESET}"
-sudo apt update
-sudo apt install -y pipx python3-hid fzf python3-gi gir1.2-gtk-4.0
+
+if command -v apt &> /dev/null; then
+    # Debian/Ubuntu
+    sudo apt update
+    sudo apt install -y pipx python3-hid fzf python3-gi gir1.2-gtk-4.0
+elif command -v pacman &> /dev/null; then
+    # Arch Linux
+    sudo pacman -Sy --needed --noconfirm python-pipx python-hidapi fzf python-gobject gtk4
+else
+    echo -e "${RED}[ x ] Unsupported package manager. Please install dependencies manually.${RESET}"
+    exit 1
+fi
 
 pipx ensurepath
 
